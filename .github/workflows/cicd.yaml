@@ -55,14 +55,14 @@ jobs:
 
       - name: Create HuggingFace cache directory
         run: |
-          mkdir -p /home/ec2-user/hf-cache
-          chmod -R 777 /home/ec2-user/hf-cache
-          echo "Created HuggingFace cache directory at /home/ec2-user/hf-cache"
+          mkdir -p /tmp/hf-cache
+          chmod -R 777 /tmp/hf-cache
+          echo "Created HuggingFace cache directory at /tmp/hf-cache"
 
       - name: Run Docker Image to serve users
         run: |
          docker run -d \
-           -v /home/ec2-user/hf-cache:/app/hf-cache \
+           -v /tmp/hf-cache:/app/hf-cache \
            -e TRANSFORMERS_CACHE=/app/hf-cache \
            -e HF_HOME=/app/hf-cache \
            -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
