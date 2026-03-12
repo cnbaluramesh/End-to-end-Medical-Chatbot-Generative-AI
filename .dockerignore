@@ -1,0 +1,9 @@
+hf-cache
+.cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.git
+.gitignore

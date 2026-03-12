@@ -2,7 +2,7 @@ name: Deploy Application Docker Image to EC2 instance
 
 on:
   push:
-    branches: [main]
+    branches: [feature/refactoredCode]
 
 
 jobs:
@@ -53,6 +53,22 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      - name: Create HuggingFace cache directory
+        run: |
+          mkdir -p /home/ec2-user/hf-cache
+          chmod -R 777 /home/ec2-user/hf-cache
+          echo "Created HuggingFace cache directory at /home/ec2-user/hf-cache"
+
       - name: Run Docker Image to serve users
         run: |
-         docker run -d -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" -e AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" -p 8080:8080 "${{ steps.login-ecr.outputs.registry }}"/"${{ secrets.ECR_REPO }}":latest
+         docker run -d \
+           -v /home/ec2-user/hf-cache:/app/hf-cache \
+           -e TRANSFORMERS_CACHE=/app/hf-cache \
+           -e HF_HOME=/app/hf-cache \
+           -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+           -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+           -e AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
+           -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
+           -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+           -p 8080:8080 \
+           "${{ steps.login-ecr.outputs.registry }}"/"${{ secrets.ECR_REPO }}":latest
